@@ -262,6 +262,8 @@ print(shutil.which('chroot'))
                 '-drive', 'file=' + os.path.join(system_a.tmp_dir, 'sysa.img') + ',format=raw',
                 '-machine', 'kernel-irqchip=split',
                 '-nic', 'user,ipv6=off,model=e1000',
+                '-chardev', 'socket,id=char0,port=45454,host=0.0.0.0,server=on,wait=on,telnet=on,logfile=serial.log',
+                '-serial', 'chardev:char0',
                 '-nographic')
 
 if __name__ == "__main__":
