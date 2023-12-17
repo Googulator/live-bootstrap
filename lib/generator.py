@@ -97,8 +97,8 @@ class Generator():
 
     def steps(self):
         """Copy in steps."""
-        source_manifest = self.get_source_manifest(not self.external_sources)
-        self.get_packages(source_manifest)
+        self.source_manifest = self.get_source_manifest(not self.external_sources)
+        self.get_packages()
 
         shutil.copytree(os.path.join(self.git_dir, 'steps'), os.path.join(self.tmp_dir, 'steps'))
 
@@ -152,12 +152,10 @@ class Generator():
         """Copy in distfiles"""
         def copy_no_network_distfiles(out):
             # Note that "no disk" implies "no network" for kernel bootstrap mode
-            pre_src_path = os.path.join(self.git_dir, 'steps', 'pre-network-sources')
-            with open(pre_src_path, 'r', encoding="utf-8") as source_list:
-                for file in source_list.readlines():
-                    file = file.strip()
-                    shutil.copy2(os.path.join(self.distfiles_dir, file),
-                                 os.path.join(out, file))
+            for file in self.source_manifest:
+                file = file[3].strip()
+                shutil.copy2(os.path.join(self.distfiles_dir, file),
+                             os.path.join(out, file))
 
         early_distfile_dir = os.path.join(self.tmp_dir, 'external', 'distfiles')
         main_distfile_dir = os.path.join(self.external_dir, 'distfiles')
@@ -295,9 +293,9 @@ this script the next time")
                 raise requests.HTTPError("Download failed.")
         return abs_file_name
 
-    def get_packages(self, source_manifest):
+    def get_packages(self):
         """Prepare remaining sources"""
-        for line in source_manifest:
+        for line in self.source_manifest:
             path = self.download_file(line[2], line[1], line[3])
             self.check_file(path, line[0])
 
