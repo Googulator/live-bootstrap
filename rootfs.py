@@ -268,7 +268,7 @@ print(shutil.which('chroot'))
                 '-m', str(args.qemu_ram) + 'M',
                 '-smp', str(args.cores),
                 '-no-reboot',
-                '-drive', 'file=' + os.path.join(generator.tmp_dir, 'disk.img') + ',format=raw'
+                '-drive', 'file=' + generator.tmp_dir + '.img' + ',format=raw'
             ]
             if tmpdir.get_disk("external") is not None:
                 arg_list += [
