@@ -297,9 +297,7 @@ this script the next time")
 
     def get_packages(self, source_manifest):
         """Prepare remaining sources"""
-        for line in source_manifest.split("\n"):
-            line = line.strip().split(" ")
-
+        for line in source_manifest:
             path = self.download_file(line[2], line[1], line[3])
             self.check_file(path, line[0])
 
@@ -335,11 +333,11 @@ this script the next time")
                                 # Automatically determine file name based on URL.
                                 file_name = os.path.basename(line[0])
 
-                            manifest_line = f"{line[1]} {directory} {line[0]} {file_name}"
+                            manifest_line = (line[1], directory, line[0], file_name)
                             if manifest_line not in manifest_lines:
                                 manifest_lines.append(manifest_line)
 
-        return "\n".join(manifest_lines)
+        return manifest_lines
 
 stage0_arch_map = {
     "amd64": "AMD64",
