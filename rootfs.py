@@ -244,7 +244,7 @@ print(shutil.which('chroot'))
             generator.prepare(kernel_bootstrap=True, target_size=size)
             image_path = os.path.join(args.tmpdir, os.path.relpath(generator.tmp_dir, args.tmpdir))
             print("Please:")
-            print("  1. Take " + image_path + "/disk.img and write it to a boot drive and then boot it.")
+            print("  1. Take " + image_path + ".img and write it to a boot drive and then boot it.")
 
     else:
         if args.kernel:
