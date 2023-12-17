@@ -38,7 +38,7 @@ def create_configuration_file(args):
             if args.repo or args.external_sources:
                 config.write("DISK=sdb1\n")
             else:
-                config.write("DISK=sdb\n")
+                config.write("DISK=sda\n")
             config.write("KERNEL_BOOTSTRAP=True\n")
         else:
             config.write("DISK=sda1\n")
