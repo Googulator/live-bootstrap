@@ -253,9 +253,9 @@ class Generator():
         current_size += round_up
 
         # extend file up to desired size
-        if (current_size < target_size * megabyte):
+        if (current_size < size * megabyte):
             with open(image_file_name, 'ab') as image_file:
-                image_file.truncate(target_size * megabyte)
+                image_file.truncate(size * megabyte)
 
     def check_file(self, file_name, expected_hash):
         """Check hash of downloaded source file."""
