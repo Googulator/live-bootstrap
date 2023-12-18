@@ -220,16 +220,16 @@ print(shutil.which('chroot'))
                          init)
 
         if not args.internal_ci or args.internal_ci == "pass2" or args.internal_ci == "pass3":
-            # TODO sysa/sysc no longer exists
+            os.makedirs(os.path.join(generator.tmp_dir, 'stage2', 'steps'), exist_ok=True)
             shutil.copy2(os.path.join('steps', 'bootstrap.cfg'),
-                         os.path.join('tmp', 'sysa', 'sysc_image', 'usr', 'src', 'bootstrap.cfg'))
+                         os.path.join(generator.tmp_dir, 'stage2', 'steps', 'bootstrap.cfg'))
             run('bwrap', '--unshare-user',
                          '--uid', '0',
                          '--gid', '0',
                          '--unshare-net' if args.external_sources else None,
                          '--clearenv',
                          '--setenv', 'PATH', '/usr/bin',
-                         '--bind', generator.tmp_dir + "/sysc_image", '/',
+                         '--bind', os.path.join(generator.tmp_dir, "stage2"), '/',
                          '--dir', '/dev',
                          '--dev-bind', '/dev/null', '/dev/null',
                          '--dev-bind', '/dev/zero', '/dev/zero',
