@@ -6,13 +6,16 @@
 #
 # Add the rest of the FHS that we will use and is not created pre-boot
 rm -rf /sbin /usr/sbin
-for d in bin lib sbin; do
-    ln -s "usr/${d}" "/${d}"
+ln -s /usr/bin /usr/sbin
+for d in bin lib sbin share; do
+    ln -s "usr/${d}" "/${d}" || true
 done
-mkdir -p /etc /run /var
-test -d /proc || (mkdir /proc && mount -t proc proc /proc)
-test -d /sys || (mkdir /sys && mount -t sysfs sysfs /sys)
+mkdir -p /etc /run /var /var/log /var/lock /var/spool /var/tmp /var/cache /proc /sys /tmp /dev
+mount -t devtmpfs none /dev || true
+mount -t proc proc /proc > /dev/null 2>&1 || true
+mount -t sysfs sysfs /sys > /dev/null 2>&1 || true
 # Make /tmp a ramdisk (speeds up configure etc significantly)
-test -d /tmp || (mkdir /tmp && mount -t tmpfs tmpfs /tmp)
+mount -t tmpfs tmpfs /tmp > /dev/null 2>&1 || true
 # Add /etc/resolv.conf
 echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+echo 'nameserver 1.1.1.1' > /etc/resolv.conf.head

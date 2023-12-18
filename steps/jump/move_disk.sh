@@ -6,13 +6,28 @@
 
 set -ex
 
+# mount might fail if /etc doesn't exist because of fstab and mtab
+mkdir -p /dev /etc
+mount -t devtmpfs none /dev || true
+
+timeout=120
+while ! dd if=/dev/${DISK} of=/dev/null bs=512 count=1; do
+    sleep 1
+    # shellcheck disable=SC2219
+    let timeout--
+    if [ "${timeout}" -le 0 ]; then
+        echo "Timeout reached for disk to become accessible"
+        false
+    fi
+done
+
 # Create partition if it doesn't exist
 if [ $(($(stat -c "%Lr" "/dev/${DISK}") % 8)) -eq 0 ]; then
     echo "Creating partition table..."
-    echo ";" | sfdisk "/dev/${DISK}"
+    echo "2097152;" | sfdisk -uS -S32 -H64 --force "/dev/${DISK}"
     fdisk -l "/dev/${DISK}"
     echo "Creating ext4 partition..."
-    mkfs.ext4 "/dev/${DISK}1"
+    mkfs.ext4 -F -F "/dev/${DISK}1"
     DISK="${DISK}1"
 fi
 

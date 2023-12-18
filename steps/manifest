@@ -12,26 +12,28 @@
 # - improve; runs a script that makes a distinct and logical improvement to the system.
 #   eg, improve: use_fhs
 # - define: define a variable based upon other variables
-#   eg, define: BUILD_FIWIX = KERNEL_BOOTSTRAP == True || BUILD_KERNELS == True
+#   eg, define: BUILD_FIWIX = KERNEL_BOOTSTRAP == " True " || BUILD_KERNELS == " True "
 # - jump: jump (usually) to a new kernel, executes a script with that name
 #   eg, jump: fiwix
 #
 # Other features:
 # - predicate; based on variables set in bootstrap.cfg, require for something to execute
 #   must be enclosed in brackets with spaces padded
-#   eg, build: fiwix-1.4.0-lb3 ( BUILD_FIWIX == True )
+#   eg, build: fiwix-1.4.0-lb3 ( BUILD_FIWIX == " True " )
 
+define: DEBUG = " True "
+define: FINAL_JOBS = JOBS
 build: checksum-transcriber-1.0
 build: simple-patch-1.0
 build: mes-0.25
 build: tcc-0.9.26
 build: tcc-0.9.27
-define: BUILD_FIWIX = ( KERNEL_BOOTSTRAP == True || BUILD_KERNELS == True )
-build: fiwix-1.4.0-lb3 ( BUILD_FIWIX == True )
-build: lwext4-1.0.0-lb1 ( BUILD_FIWIX == True )
-build: kexec-fiwix-1.0 ( BUILD_FIWIX == True )
-jump: fiwix ( KERNEL_BOOTSTRAP == True )
-define: JOBS = 1 ( KERNEL_BOOTSTRAP == True )
+define: BUILD_FIWIX = ( KERNEL_BOOTSTRAP == " True " || BUILD_KERNELS == " True " )
+build: fiwix-1.4.0-lb3 ( BUILD_FIWIX == " True " )
+build: lwext4-1.0.0-lb1 ( BUILD_FIWIX == " True " )
+build: kexec-fiwix-1.0 ( BUILD_FIWIX == " True " )
+jump: fiwix ( KERNEL_BOOTSTRAP == " True " )
+define: JOBS = " 1 " ( KERNEL_BOOTSTRAP == " True " )
 build: make-3.82
 build: patch-2.5.9
 build: gzip-1.2.4
@@ -104,17 +106,19 @@ build: kbd-1.15
 build: make-3.82
 build: ed-1.4
 build: bc-1.07.1
-define: BUILD_LINUX = ( CHROOT == False || BUILD_KERNELS == True )
-build: kexec-linux-1.0.0 ( BUILD_LINUX == True )
-build: kexec-tools-2.0.22 ( BUILD_LINUX == True )
-build: linux-4.9.10 ( BUILD_LINUX == True )
-jump: linux ( CHROOT == False )
+define: BUILD_LINUX = ( CHROOT == " False " || BUILD_KERNELS == " True " )
+build: kexec-linux-1.0.0 ( BUILD_LINUX == " True " )
+build: kexec-tools-2.0.22 ( BUILD_LINUX == " True " )
+build: linux-4.9.10 ( BUILD_LINUX == " True " )
+jump: linux ( CHROOT == " False " )
+jump: move_disk ( KERNEL_BOOTSTRAP == " True " )
+define: JOBS = FINAL_JOBS
+improve: update_jobs
 improve: finalize_fhs
+improve: swap ( SWAP_SIZE != " 0 " )
 build: musl-1.2.4
 build: curl-7.88.1
-improve: populate_device_nodes
-jump: move_disk ( KERNEL_BOOTSTRAP == True )
-improve: get_network ( CHROOT == False )
+improve: get_network ( CHROOT == " False " )
 build: bash-5.2.15
 build: xz-5.4.1
 build: file-5.44
@@ -170,4 +174,7 @@ build: python-3.11.1
 build: gcc-10.4.0
 build: binutils-2.38
 build: gcc-13.1.0
-improve: null_time ( FORCE_TIMESTAMPS == True )
+improve: null_time ( FORCE_TIMESTAMPS == " True " )
+# dummy define to ensure this is what gets written to bootstrap.cfg
+define: JOBS = " 1 " ( KERNEL_BOOTSTRAP == " True " )
+improve: after

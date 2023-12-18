@@ -213,7 +213,10 @@ Token *fill(Token *tok, Directive *directive, int type) {
 Token *logic(Token *tok, char **val) {
 	/* logic = "("
 	 *         (name |
-	 *         (name "==" value) |
+	 *         (name "==" "\"" value "\"") |
+	 *         (name "!=" "\"" value "\"") |
+	 *         (name "==" name) |
+	 *         (name "!=" name) |
 	 *         (logic "||" logic) |
 	 *         (logic "&&" logic))
 	 *         ")"
@@ -230,13 +233,34 @@ Token *logic(Token *tok, char **val) {
 		/* Case for equality. */
 		rhs = tok->next->val;
 		tok = tok->next->next;
+		if (strcmp(rhs, "\"") == 0) {
+			rhs = tok->val;
+			tok = tok->next->next;
+		} else {
+			rhs = get_var(rhs);
+		}
 		if (strcmp(get_var(lhs), rhs) == 0) {
 			lhs = "True";
 		} else {
 			lhs = "False";
 		}
+	} else if (strcmp(tok->val, "!=") == 0) {
+		/* Case for inequality. */
+		rhs = tok->next->val;
+		tok = tok->next->next;
+		if (strcmp(rhs, "\"") == 0) {
+			rhs = tok->val;
+			tok = tok->next->next;
+		} else {
+			rhs = get_var(rhs);
+		}
+		if (strcmp(get_var(lhs), rhs) == 0) {
+			lhs = "False";
+		} else {
+			lhs = "True";
+		}
 	} else {
-		fputs("Expected == after ", stderr);
+		fputs("Expected == or != after ", stderr);
 		fputs(lhs, stderr);
 		fputs(" in logic\n", stderr);
 		exit(1);
@@ -310,9 +334,14 @@ Token *define(Token *tok, Directive *directive) {
 	if (strcmp(tok->val, "(") == 0) {
 		/* It is a logic. */
 		tok = primary_logic(tok, &val);
-	} else {
+	} else if (strcmp(tok->val, "\"") == 0) {
 		/* It is a constant. */
+		tok = tok->next;
 		strcpy(val, tok->val);
+		tok = tok->next;
+	} else {
+		/* It is a variable. */
+		strcpy(val, get_var(tok->val));
 	}
 
 	/* Check for predicate. */
@@ -373,7 +402,7 @@ int interpret(Directive *directive) {
 
 Directive *interpreter(Directive *directives) {
 	Directive *directive;
-	Directive *last;
+	Directive *last = NULL;
 	for (directive = directives; directive != NULL; directive = directive->next) {
 		if (interpret(directive)) {
 			/* This means this directive needs to be removed from the linked list. */
@@ -425,7 +454,15 @@ FILE *start_script(int id, int using_bash) {
 
 	if (using_bash) {
 		fputs("#!/bin/bash\n", out);
-		fputs("set -e\n", out);
+		if (strcmp(get_var("DEBUG"), "True") == 0) {
+			if (using_bash != 1) {
+				fputs("trap 'env - PATH=${PREFIX}/bin PS1=\"[TRAP] \\w # \" bash -i' ERR\n", out);
+			} else {
+				fputs("trap 'bash -c '\"'\"'while true; do printf \"[TRAP - use Ctrl+D] $(pwd) # \"; $(cat); done'\"'\"'' ERR\n", out);
+			}
+		} else {
+			fputs("set -e\n", out);
+		}
 		fputs("cd /steps\n", out);
 		fputs(". ./bootstrap.cfg\n", out);
 		fputs(". ./env\n", out);
@@ -535,7 +572,7 @@ void generate(Directive *directives) {
 					 */
 					generate_preseed_jump(counter);
 				}
-				using_bash = 1;
+				using_bash += 1;
 				/* Create call to new script. */
 				output_call_script(out, "", int2str(counter, 10, 0), using_bash, 0);
 				fclose(out);
